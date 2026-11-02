@@ -6,7 +6,7 @@
  * readable in the standard to-do panel and in the companion app.
  * MIT License, dllfpp.
  */
-const VERSION = "1.0.2";
+const VERSION = "1.0.3";
 
 const I18N = {
   en: {
@@ -278,8 +278,8 @@ class TodoPlannerCard extends HTMLElement {
     }
     // ha-card is created once and kept: styles injected into it by other tools (card-mod, UIX) survive updates.
     if (!this._card) {
-      this.shadowRoot.innerHTML = `<style>${STYLE}</style><ha-card><div class="wrap"></div></ha-card>`;
-      this._card = this.shadowRoot.querySelector(".wrap");
+      this.shadowRoot.innerHTML = `<style>${STYLE}</style><ha-card></ha-card>`;
+      this._card = this.shadowRoot.querySelector("ha-card");
     }
     this._card.innerHTML = `
         <div class="head">
@@ -426,7 +426,6 @@ class TodoPlannerCard extends HTMLElement {
 const STYLE = `
   :host { display: block; height: 100%; }
   ha-card { height: 100%; min-width: 0; display: flex; flex-direction: column; box-sizing: border-box; padding: 12px 12px 8px; overflow: hidden; }
-  .wrap { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
   .head { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 44px; }
   h2 { margin: 0; font-size: 18px; font-weight: 600; color: var(--primary-text-color); }
   .scroll { flex: 1 1 auto; overflow-y: auto; min-height: 0; margin-top: 6px; }
