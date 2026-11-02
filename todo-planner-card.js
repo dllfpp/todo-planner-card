@@ -6,7 +6,7 @@
  * readable in the standard to-do panel and in the companion app.
  * MIT License, dllfpp.
  */
-const VERSION = "1.0.1";
+const VERSION = "1.0.2";
 
 const I18N = {
   en: {
@@ -276,17 +276,19 @@ class TodoPlannerCard extends HTMLElement {
         ${done.length ? `<button class="link" data-act="done">${this._showDone ? t.hideDone : t.showDone} (${done.length})</button>` : ""}
         ${this._showDone && done.length ? `<ul class="list">${done.map((it) => this._row(it)).join("")}</ul>` : ""}`;
     }
-    this.shadowRoot.innerHTML = `
-      <style>${STYLE}</style>
-      <ha-card>
+    // ha-card is created once and kept: styles injected into it by other tools (card-mod, UIX) survive updates.
+    if (!this._card) {
+      this.shadowRoot.innerHTML = `<style>${STYLE}</style><ha-card><div class="wrap"></div></ha-card>`;
+      this._card = this.shadowRoot.querySelector(".wrap");
+    }
+    this._card.innerHTML = `
         <div class="head">
           <h2>${esc(title)}</h2>
           ${this._formOpen ? "" : `<button class="btn primary add" data-act="open" aria-label="${t.newTask}">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6z"/></svg><span>${t.add}</span></button>`}
         </div>
         ${this._formOpen ? this._form() : ""}
-        <div class="scroll">${content}</div>
-      </ha-card>`;
+        <div class="scroll">${content}</div>`;
     this.shadowRoot.querySelectorAll("[data-act]").forEach((el) => el.addEventListener("click", (e) => this._onAct(e, el)));
     this.shadowRoot.querySelectorAll("[data-drag]").forEach((h) => h.addEventListener("pointerdown", (e) => this._dragStart(e, h)));
     const form = this.shadowRoot.querySelector("form");
@@ -423,7 +425,8 @@ class TodoPlannerCard extends HTMLElement {
 
 const STYLE = `
   :host { display: block; height: 100%; }
-  ha-card { height: 100%; display: flex; flex-direction: column; box-sizing: border-box; padding: 12px 12px 8px; overflow: hidden; }
+  ha-card { height: 100%; min-width: 0; display: flex; flex-direction: column; box-sizing: border-box; padding: 12px 12px 8px; overflow: hidden; }
+  .wrap { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
   .head { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 44px; }
   h2 { margin: 0; font-size: 18px; font-weight: 600; color: var(--primary-text-color); }
   .scroll { flex: 1 1 auto; overflow-y: auto; min-height: 0; margin-top: 6px; }
