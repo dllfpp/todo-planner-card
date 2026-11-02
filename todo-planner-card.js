@@ -6,7 +6,7 @@
  * readable in the standard to-do panel and in the companion app.
  * MIT License, dllfpp.
  */
-const VERSION = "1.0.0";
+const VERSION = "1.0.1";
 
 const I18N = {
   en: {
@@ -104,6 +104,7 @@ class TodoPlannerCard extends HTMLElement {
     this._config = { show_completed: false, group_by_priority: false, allow_reorder: false, ...config };
     this._showDone = !!this._config.show_completed;
     this._formOpen = false;
+    this._setLanguage();
     if (!this.shadowRoot) this.attachShadow({ mode: "open" });
     this._render();
   }
@@ -111,10 +112,15 @@ class TodoPlannerCard extends HTMLElement {
   set hass(hass) {
     const first = !this._hass;
     this._hass = hass;
-    const lang = (this._config.language || hass.locale?.language || hass.language || "en").slice(0, 2);
-    this._t = I18N[lang] || I18N.en;
-    this._locale = hass.locale?.language || lang;
+    this._setLanguage();
     if (first || !this._unsub) this._subscribe();
+  }
+
+  // Texts are needed by every render, which can happen before or after hass arrives.
+  _setLanguage() {
+    const lang = (this._config?.language || this._hass?.locale?.language || this._hass?.language || "en").slice(0, 2);
+    this._t = I18N[lang] || I18N.en;
+    this._locale = this._hass?.locale?.language || lang;
   }
 
   connectedCallback() {
@@ -287,7 +293,7 @@ class TodoPlannerCard extends HTMLElement {
     if (form) {
       form.addEventListener("submit", (e) => this._onSubmit(e, form));
       if (this._focusForm) {
-        form.summary.focus();
+        form.elements.namedItem("summary").focus();
         this._focusForm = false;
       }
     }
@@ -395,16 +401,16 @@ class TodoPlannerCard extends HTMLElement {
   async _onSubmit(e, form) {
     e.preventDefault();
     const t = this._t;
-    const summary = form.summary.value.trim();
+    const summary = form.elements.namedItem("summary").value.trim();
     const error = form.querySelector(".error");
     if (!summary) {
       error.textContent = `${t.task}?`;
-      form.summary.focus();
+      form.elements.namedItem("summary").focus();
       return;
     }
-    const start = form.start.value || isoToday();
+    const start = form.elements.namedItem("start").value || isoToday();
     const data = { item: summary, description: buildDescription(t, start, this._draftPrio || "medium", "") };
-    if (form.due.value) data.due_date = form.due.value;
+    if (form.elements.namedItem("due").value) data.due_date = form.elements.namedItem("due").value;
     try {
       await this._call("add_item", data);
       this._formOpen = false;
